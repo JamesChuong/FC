@@ -1,38 +1,38 @@
 import math
+import sys
+
 from direct.actor.Actor import Actor
 from direct.interval.MetaInterval import Sequence
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task import Task
-from panda3d.core import Point3, Vec3, Quat
+from panda3d.core import Point3, Vec3, Quat, WindowProperties
 
 
-class myApp(ShowBase):
+class MyApp(ShowBase):
 
     def __init__(self):
         ShowBase.__init__(self)
 
         self.disableMouse()
 
+        self.captureMouse()
+
         self.scene = self.loader.loadModel("models/environment")
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
         self.scene.setPos(-8, 42, 0)
 
-        # Create a panda model
-        self.pandaActor = Actor("models/panda-model", {'walk': "models/panda-walk4"})
-        self.pandaActor.setScale(0.0030, 0.003, 0.005)
-        self.pandaActor.reparentTo(self.render)
-
-        self.pandaActor.loop("walk")
-
-        self.camera.reparentTo(self.pandaActor)
-        self.camera.setPos(0, 0.2, 1.5)
+        # Set initial camera position
+        self.camera.setPos(50, -50, 50)
 
         # Movement settings
         self.speed = 10  # Movement speed
         self.sensitivity = 0.002  # Mouse sensitivity
         self.keys = {"w": False, "s": False, "a": False, "d": False}
+
+        # Fixed camera height above the ground
+        self.camera_height = 5  # Adjust this value as needed
 
         # Accept key events
         for key in self.keys:
@@ -47,26 +47,46 @@ class myApp(ShowBase):
     def set_key(self, key, value):
         self.keys[key] = value
 
-    def updateMouseMovement(self, task):
+    def captureMouse(self):
         md = self.win.getPointer(0)
-        mouse_x = md.getX() - self.win.getXSize() // 2
-        heading = self.pandaActor.getH() - mouse_x * self.sensitivity
-        self.pandaActor.setH(heading)  # Update panda's heading
+        self.lastMouseX = md.getX()
+        self.lastMouseY = md.getY()
 
-        mouse_y = md.getY() - self.win.getYSize() // 2
+        properties = WindowProperties()
+        properties.setCursorHidden(True)
+        properties.setMouseMode(WindowProperties.M_relative)
+        self.win.requestProperties(properties)
 
-        # Adjust the camera's pitch based on mouse_y movement
-        pitch = self.camera.getP() - mouse_y * self.sensitivity
-        pitch = max(-20, min(20, pitch))
+    def setupControls(self):
+        self.accept("escape", self.releaseMouse)
+        self.accept("mouse1", self.captureMouse)
 
-        quat = Quat()
-        hpr = Vec3(self.pandaActor.getH(), pitch, 0)
+    def releaseMouse(self):
+        properties = WindowProperties()
+        properties.setCursorHidden(False)
+        properties.setMouseMode(WindowProperties.M_absolute)
+        self.win.requestProperties(properties)
 
-        quat.setHpr(hpr)
-        self.camera.setQuat(quat)
+    def updateMouseMovement(self, task):
+        dt = globalClock.getDt()
 
-        # Reset the mouse position to the center of the screen
-        self.win.movePointer(0, self.win.getXSize() // 2, self.win.getYSize() // 2)
+        md = self.win.getPointer(0)
+        mouseX = md.getX()
+        mouseY = md.getY()
+
+        mouseChangeX = mouseX - self.lastMouseX
+        mouseChangeY = mouseY - self.lastMouseY
+
+        self.cameraSwingFactor = 10
+
+        self.camera.setHpr(
+            self.camera.getH() - mouseChangeX * dt * self.cameraSwingFactor,
+            min(90, max(-90, self.camera.getP() - mouseChangeY * dt * self.cameraSwingFactor)),
+            0
+        )
+
+        self.lastMouseX = mouseX
+        self.lastMouseY = mouseY
 
         return task.cont
 
@@ -88,13 +108,16 @@ class myApp(ShowBase):
         if move_direction.length() > 0:
             move_direction.normalize()
 
-        # Move panda in the direction it's facing
-        movement = self.pandaActor.getQuat().xform(move_direction) * self.speed * dt
-        self.pandaActor.setPos(self.pandaActor.getPos() + movement)
+        # Move camera in the direction it's facing
+        movement = self.camera.getQuat().xform(move_direction) * self.speed * dt
+        new_pos = self.camera.getPos() + movement
+
+        # Lock the camera to the ground by fixing its Z-coordinate
+        new_pos.z = self.camera_height
+        self.camera.setPos(new_pos)
 
         return task.cont  # Continue running the task
 
 
-app = myApp()
-
+app = MyApp()
 app.run()
