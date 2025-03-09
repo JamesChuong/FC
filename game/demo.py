@@ -39,8 +39,9 @@ class MyApp(ShowBase):
         self.taskMgr.add(self.updateMouseMovement, "updateMouseMovement")
         self.taskMgr.add(self.updateMovement, "updateMovement")
 
-        self.new_entity = Entity(self.render, self.loader, ["textures/dog.jpg", "textures/akki.jpg"])
+        self.new_entity = Entity(self.render, self.loader, ["textures/dog.jpg", "textures/akki.jpg"], self.camera)
         self.taskMgr.add(self.new_entity.animateTexture, "animateTexture")
+        self.taskMgr.add(self.new_entity.moveTowardsPlayer, "moveTowardsPlayer")
 
 
     def setupCamera(self):
