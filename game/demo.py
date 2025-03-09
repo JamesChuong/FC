@@ -30,19 +30,18 @@ class MyApp(ShowBase):
         self.setupCamera()
         
         textures = []
-        textures.append('textures/0.png', 'textures/1.png')
-
         # url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=1.0&prompt=smiling%20face&num=20"
         # requests.get(url)
-        # for i in range(3):
-        #     url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=0.1&prompt=smiling%20face&num=4"
-        #     res= requests.get(url)
-        #     if res.status_code != 200:
-        #         raise Exception("API endpoint failed")
-        #     name = "textures/" + str(i) + ".png"
-        #     with open(name, "wb") as f:
-        #         f.write(res.content)
-        #     textures.append(name)
+        for i in range(3):
+            # url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=0.1&prompt=smiling%20face&num=4"
+            # res= requests.get(url)
+            # if res.status_code != 200:
+            #     raise Exception("API endpoint failed")
+            # 
+            name = "textures/" + str(i) + ".png"
+            # with open(name, "wb") as f:
+            #     f.write(res.content)
+            textures.append(name)
 
         self.disableMouse()
 
