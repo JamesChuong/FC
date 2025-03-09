@@ -6,6 +6,7 @@ from direct.task import Task
 from panda3d.core import (Vec3, WindowProperties, AmbientLight, 
                          DirectionalLight, CardMaker, CollisionTraverser, 
                          CollisionNode, CollisionSphere, CollisionHandlerPusher)
+import requests
 
 from entity import Entity
 
@@ -26,6 +27,23 @@ class MyApp(ShowBase):
 
         self.setupEnvironment() 
 
+        self.setupCamera()
+        
+        textures = []
+        textures.append('textures/0.png', 'textures/1.png')
+
+        # url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=1.0&prompt=smiling%20face&num=20"
+        # requests.get(url)
+        # for i in range(3):
+        #     url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=0.1&prompt=smiling%20face&num=4"
+        #     res= requests.get(url)
+        #     if res.status_code != 200:
+        #         raise Exception("API endpoint failed")
+        #     name = "textures/" + str(i) + ".png"
+        #     with open(name, "wb") as f:
+        #         f.write(res.content)
+        #     textures.append(name)
+
         self.disableMouse()
 
         # Key bindings
@@ -43,17 +61,13 @@ class MyApp(ShowBase):
         self.accept("space-up", self.set_key, ["space", False])
         
         # Add tities
-        self.new_entity = Entity(self.render, self.loader, ["textures/dog.jpg", "textures/akki.jpg"], self.camera)
+        self.new_entity = Entity(self.render, self.loader, textures, self.camera, movementSpeed=4)
 
         # Add tasks to task manager
         self.taskMgr.add(self.updateMouseMovement, "MouseMovementTask")
         self.taskMgr.add(self.updateMovement, "MovementTask")
         self.taskMgr.add(self.new_entity.animateTexture, "animateTexture")
         self.taskMgr.add(self.new_entity.moveTowardsPlayer, "moveTowardsPlayer")
-        
-        # Set camera position
-        self.camera.setPos(0, 0, self.player_height)
-        self.camLens.setFov(100)
         
         # Center mouse
         self.win.movePointer(0, self.win.getXSize() // 2, self.win.getYSize() // 2)
@@ -109,6 +123,10 @@ class MyApp(ShowBase):
         ground.setPos(0, 0, 0)
         ground.setP(-90)
         ground.setColor((0.3, 0.3, 0.3, 1))
+
+    def setupCamera(self):
+        self.camera.setPos(0, 0, self.player_height)
+        self.camLens.setFov(100)
 
     def set_key(self, key_pressed, is_pressed):
         self.player_input[key_pressed] = is_pressed

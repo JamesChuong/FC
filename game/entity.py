@@ -1,9 +1,9 @@
 # the class to create entities w/ animation n stuff
 
-from panda3d.core import CardMaker, Texture
+from panda3d.core import CardMaker, Texture, PNMImage
 from math import sqrt
+from io import BytesIO
 import requests
-import time
 
 class Entity:
     def __init__(self, parent, loader, textures, camera, size=[2, 2], pos=[0, 5, 5], hpr=[0, 0, 0], movementSpeed=0.1):
@@ -21,9 +21,9 @@ class Entity:
         self.card.set_pos(pos[0], pos[1], pos[2])
         self.card.set_hpr(hpr[0], hpr[1], hpr[2])
         self.animationSpeed = 10 # number of frames before updating texture
-        self.movementSpeed = movementSpeed
+        self.movementSpeed = movementSpeed / 1000
         self.camera = camera
-
+        
         self.card.setBillboardPointEye()
         self.index = 0
 
@@ -31,8 +31,6 @@ class Entity:
         frame = self.textures[int(task.time % len(self.textures))]
 
         texture = loader.loadTexture(frame)
-        # texture = Texture()
-        # texture.load(self.fetch_image())
         self.card.set_texture(texture)
 
         # time.sleep(1)
@@ -54,8 +52,11 @@ class Entity:
         url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png"
         res= requests.get(url)
 
-        if res.status_code == 200:
-            self.texture = res.content
-        else:
+        if res.status_code != 200:
             raise Exception("API endpoint failed")
+
+        with open("textures/a.png", "wb") as f:
+            f.write(res.content)
+
+        return BytesIO(res.content)
         

@@ -1,0 +1,9 @@
+certifi==2025.1.31
+charset-normalizer==3.4.1
+idna==3.10
+Panda3D==1.10.15
+panda3d-gltf==1.2.1
+panda3d-simplepbr==0.12.0
+requests==2.32.3
+typing_extensions==4.12.2
+urllib3==2.3.0
