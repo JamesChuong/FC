@@ -14,25 +14,15 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
 
-        self.disableMouse()
-
         self.captureMouse()
+        self.setupControls()
 
         self.scene = self.loader.loadModel("models/environment")
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
         self.scene.setPos(-8, 42, 0)
 
-        # Set initial camera position
-        self.camera.setPos(50, -50, 50)
-
-        # Movement settings
-        self.speed = 10  # Movement speed
-        self.sensitivity = 0.002  # Mouse sensitivity
-        self.keys = {"w": False, "s": False, "a": False, "d": False}
-
-        # Fixed camera height above the ground
-        self.camera_height = 5  # Adjust this value as needed
+        self.setupCamera()
 
         # Accept key events
         for key in self.keys:
@@ -44,10 +34,24 @@ class MyApp(ShowBase):
         self.taskMgr.add(self.updateMouseMovement, "updateMouseMovement")
         self.taskMgr.add(self.updateMovement, "updateMovement")
 
+    def setupCamera(self):
+
+        self.disableMouse()
+        # Set initial camera position
+        self.camera.setPos(0, 0, 3)
+        # Movement settings
+        self.speed = 10  # Movement speed
+        self.sensitivity = 0.09  # Mouse sensitivity
+        self.keys = {"w": False, "s": False, "a": False, "d": False}
+        # Fixed camera height above the ground
+        self.camera_height = 5  # Adjust this value as needed
+        self.camLens.setFov(100)
+
     def set_key(self, key, value):
         self.keys[key] = value
 
     def captureMouse(self):
+
         md = self.win.getPointer(0)
         self.lastMouseX = md.getX()
         self.lastMouseY = md.getY()
@@ -68,25 +72,26 @@ class MyApp(ShowBase):
         self.win.requestProperties(properties)
 
     def updateMouseMovement(self, task):
+        """
+        Update the camera's orientation based on mouse movement.
+        """
         dt = globalClock.getDt()
 
+        # Get the mouse movement
         md = self.win.getPointer(0)
         mouseX = md.getX()
         mouseY = md.getY()
 
-        mouseChangeX = mouseX - self.lastMouseX
-        mouseChangeY = mouseY - self.lastMouseY
+        # Calculate the change in mouse position
+        mouseChangeX = mouseX - self.win.getXSize() // 2
+        mouseChangeY = mouseY - self.win.getYSize() // 2
 
-        self.cameraSwingFactor = 10
+        # Update the camera's heading and pitch
+        self.camera.setH(self.camera.getH() - mouseChangeX * self.sensitivity)
+        self.camera.setP(min(90, max(self.camera.getP() - mouseChangeY * self.sensitivity, -90)))
 
-        self.camera.setHpr(
-            self.camera.getH() - mouseChangeX * dt * self.cameraSwingFactor,
-            min(90, max(-90, self.camera.getP() - mouseChangeY * dt * self.cameraSwingFactor)),
-            0
-        )
-
-        self.lastMouseX = mouseX
-        self.lastMouseY = mouseY
+        # Reset the mouse position to the center of the window
+        self.win.movePointer(0, self.win.getXSize() // 2, self.win.getYSize() // 2)
 
         return task.cont
 
