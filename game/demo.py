@@ -7,6 +7,7 @@ from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task import Task
 from panda3d.core import Point3, Vec3, Quat, WindowProperties
+import requests
 
 from entity import Entity
 
@@ -39,7 +40,22 @@ class MyApp(ShowBase):
         self.taskMgr.add(self.updateMouseMovement, "updateMouseMovement")
         self.taskMgr.add(self.updateMovement, "updateMovement")
 
-        self.new_entity = Entity(self.render, self.loader, ["textures/dog.jpg", "textures/akki.jpg"], self.camera)
+        textures = []
+        url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=1.0&prompt=smiling%20face&num=20"
+        requests.get(url)
+        for i in range(3):
+            url = "https://lfqdjc8cbikxmk-8888.proxy.runpod.net/james.png?str=0.1&prompt=smiling%20face&num=4"
+            res= requests.get(url)
+            if res.status_code != 200:
+                raise Exception("API endpoint failed")
+
+            name = "textures/" + str(i) + ".png"
+            with open(name, "wb") as f:
+                f.write(res.content)
+
+            textures.append(name)
+
+        self.new_entity = Entity(self.render, self.loader, textures, self.camera, movementSpeed=4)
         self.taskMgr.add(self.new_entity.animateTexture, "animateTexture")
         self.taskMgr.add(self.new_entity.moveTowardsPlayer, "moveTowardsPlayer")
 
