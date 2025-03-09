@@ -16,7 +16,11 @@ class MyApp(ShowBase):
 
         self.captureMouse()
         self.setupControls()
-
+        self.gravity = 30
+        self.on_ground = True
+        self.vertical_velocity = 0
+        self.jump_speed = 10
+        self.is_paused = False
         self.scene = self.loader.loadModel("models/environment")
         self.scene.reparentTo(self.render)
         self.scene.setScale(0.25, 0.25, 0.25)
@@ -42,7 +46,7 @@ class MyApp(ShowBase):
         # Movement settings
         self.speed = 10  # Movement speed
         self.sensitivity = 0.09  # Mouse sensitivity
-        self.keys = {"w": False, "s": False, "a": False, "d": False}
+        self.keys = {"w": False, "s": False, "a": False, "d": False, "space": False}
         # Fixed camera height above the ground
         self.camera_height = 5  # Adjust this value as needed
         self.camLens.setFov(100)
@@ -53,29 +57,30 @@ class MyApp(ShowBase):
     def captureMouse(self):
 
         md = self.win.getPointer(0)
-        self.lastMouseX = md.getX()
-        self.lastMouseY = md.getY()
 
         properties = WindowProperties()
         properties.setCursorHidden(True)
-        properties.setMouseMode(WindowProperties.M_relative)
+        properties.setMouseMode(WindowProperties.M_absolute)
         self.win.requestProperties(properties)
+        self.is_paused = False
 
     def setupControls(self):
         self.accept("escape", self.releaseMouse)
         self.accept("mouse1", self.captureMouse)
 
+
     def releaseMouse(self):
         properties = WindowProperties()
+        self.is_paused = True
         properties.setCursorHidden(False)
         properties.setMouseMode(WindowProperties.M_absolute)
         self.win.requestProperties(properties)
 
     def updateMouseMovement(self, task):
-        """
-        Update the camera's orientation based on mouse movement.
-        """
+
         dt = globalClock.getDt()
+        if self.is_paused:
+            return task.cont
 
         # Get the mouse movement
         md = self.win.getPointer(0)
@@ -88,7 +93,7 @@ class MyApp(ShowBase):
 
         # Update the camera's heading and pitch
         self.camera.setH(self.camera.getH() - mouseChangeX * self.sensitivity)
-        self.camera.setP(min(90, max(self.camera.getP() - mouseChangeY * self.sensitivity, -90)))
+        self.camera.setP(min(90, max(self.camera.getP() - mouseChangeY * self.sensitivity, -90))) # Prevent flipping underside of player
 
         # Reset the mouse position to the center of the window
         self.win.movePointer(0, self.win.getXSize() // 2, self.win.getYSize() // 2)
@@ -108,6 +113,11 @@ class MyApp(ShowBase):
             move_direction += Vec3(-1, 0, 0)
         if self.keys["d"]:
             move_direction += Vec3(1, 0, 0)
+        if self.keys["space"] and self.on_ground:
+            self.on_ground = False
+            self.vertical_velocity = self.jump_speed
+
+        self.vertical_velocity += (-1) * self.gravity * dt
 
         # Normalize movement to avoid diagonal speed boost
         if move_direction.length() > 0:
@@ -116,9 +126,15 @@ class MyApp(ShowBase):
         # Move camera in the direction it's facing
         movement = self.camera.getQuat().xform(move_direction) * self.speed * dt
         new_pos = self.camera.getPos() + movement
+        new_pos.z += self.vertical_velocity * dt
 
-        # Lock the camera to the ground by fixing its Z-coordinate
-        new_pos.z = self.camera_height
+        if(new_pos.z < self.camera_height):
+
+            # Lock the camera to the ground by fixing its Z-coordinate
+            new_pos.z = self.camera_height
+            self.on_ground = True
+            self.vertical_velocity = 0
+
         self.camera.setPos(new_pos)
 
         return task.cont  # Continue running the task
