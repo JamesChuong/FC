@@ -37,8 +37,8 @@ class MyApp(ShowBase):
             # res= requests.get(url)
             # if res.status_code != 200:
             #     raise Exception("API endpoint failed")
-            # 
-            name = "textures/" + str(i) + ".png"
+            
+            name = "textures/" + str(i) + "_1.png"
             # with open(name, "wb") as f:
             #     f.write(res.content)
             textures.append(name)
