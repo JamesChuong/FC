@@ -6,7 +6,7 @@ import requests
 import time
 
 class Entity:
-    def __init__(self, parent, loader, textures, camera, size=[2, 2], pos=[0, 5, 5], hpr=[0, 0, 0], movementSpeed=0.01):
+    def __init__(self, parent, loader, textures, camera, size=[2, 2], pos=[0, 5, 5], hpr=[0, 0, 0], movementSpeed=0.1):
         if loader is None or parent is None or textures is None:
             raise Exception("you must pass a parent, loader and textures")
 
@@ -45,7 +45,6 @@ class Entity:
         direction = player_pos - card_pos 
         norm = sqrt(direction[0]**2 + direction[1]**2 + direction[2]**2)
         direction = (direction / norm) * self.movementSpeed
-        print(direction)
 
         self.card.set_pos(card_pos[0] + direction[0], card_pos[1] + direction[1], card_pos[2])
 
