@@ -8,6 +8,7 @@ from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task import Task
 from panda3d.core import Point3, Vec3, Quat, WindowProperties
 
+from entity import Entity
 
 class MyApp(ShowBase):
 
@@ -38,8 +39,11 @@ class MyApp(ShowBase):
         self.taskMgr.add(self.updateMouseMovement, "updateMouseMovement")
         self.taskMgr.add(self.updateMovement, "updateMovement")
 
-    def setupCamera(self):
+        self.new_entity = Entity(self.render, self.loader, ["textures/dog.jpg", "textures/akki.jpg"])
+        self.taskMgr.add(self.new_entity.animateTexture, "animateTexture")
 
+
+    def setupCamera(self):
         self.disableMouse()
         # Set initial camera position
         self.camera.setPos(0, 0, 3)
